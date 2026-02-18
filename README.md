@@ -64,7 +64,7 @@ The workflow ensures comprehensive coverage by requiring the LLM to account for 
 - Phase 1 prompt ([openai/prompt-openai-1.txt](openai/prompt-openai-1.txt)): Paste into ChatGPT with the lecture PDF; it does slide-by-slide generation with checkpoints. When it emits the CSV, copy that to the clipboard before continuing.
 - Phase 2 prompt ([openai/prompt-openai-2.txt](openai/prompt-openai-2.txt)): The script copies this for you after Phase 1. Paste it (same chat) to clean up and compress the cards, then copy the final CSV to the clipboard.
 - The script saves both the raw and cleaned CSV/MD outputs automatically.
-- If the model stops partway through, send: `Load previous checkpoint and continue` to resume from the last saved progress.
+- Expected occasional stall: ChatGPT may return `BLOCKED` with `REASON=tool_auth_failure` and an internal HTTP 401 trace when opening a rendered slide. When that happens, simply send `Load previous checkpoint and continue` in the same chat; it should resume from the last checkpoint. Continue doing this until it finishes all slides.
 
 ### Processing Pipeline
 
