@@ -11,6 +11,11 @@ This repository provides a structured, two-phase prompting strategy to create ex
 
 The workflow ensures comprehensive coverage by requiring the LLM to account for every slide, preventing accidental omissions that could occur with single-pass generation.
 
+## Directory Layout
+
+- universal/ — Provider-agnostic, two-phase workflow (prompts: prompt-1.md, prompt-2.md; runner: ankify.sh)
+- openai/ — OpenAI-only, one-shot workflow (prompts: prompt-openai-1.md, prompt-openai-2.md; runner: ankify-openai.sh). It tends to be more deterministic but may occasionally stop; if that happens, send the manual prompt: "Load previous checkpoint and continue".
+
 ## Prerequisites
 
 - Standard GNU Linux/MinGW tooling (bash, realpath, dirname, cat, tee)
@@ -22,15 +27,15 @@ The workflow ensures comprehensive coverage by requiring the LLM to account for 
 
 ## Usage
 
-```bash
-./ankify.sh <lecture-name>
-```
+### Universal workflow (LLM-agnostic)
 
-### Workflow
+```bash
+./universal/ankify.sh <lecture-name>
+```
 
 1. **Run the script** with your lecture identifier:
    ```bash
-   ./ankify.sh lecture-02
+   ./universal/ankify.sh lecture-02
    ```
 
 2. **Phase 1 - Slide Index**:
@@ -49,6 +54,17 @@ The workflow ensures comprehensive coverage by requiring the LLM to account for 
 4. **Output**:
    - `<lecture-name>.csv` - Importable Anki deck
    - `<lecture-name>.md` - Human-readable Markdown for review
+
+### OpenAI-only workflow (more deterministic)
+
+```bash
+./openai/ankify-openai.sh <lecture-name>
+```
+
+- Phase 1 prompt ([openai/prompt-openai-1.md](openai/prompt-openai-1.md)): Paste into ChatGPT with the lecture PDF; it does slide-by-slide generation with checkpoints. When it emits the CSV, copy that to the clipboard before continuing.
+- Phase 2 prompt ([openai/prompt-openai-2.md](openai/prompt-openai-2.md)): The script copies this for you after Phase 1. Paste it (same chat) to clean up and compress the cards, then copy the final CSV to the clipboard.
+- The script saves both the raw and cleaned CSV/MD outputs automatically.
+- If the model stops partway through, send: `Load previous checkpoint and continue` to resume from the last saved progress.
 
 ### Processing Pipeline
 
