@@ -61,8 +61,8 @@ The workflow ensures comprehensive coverage by requiring the LLM to account for 
 ./openai/ankify-openai.sh <lecture-name>
 ```
 
-- Phase 1 prompt ([openai/prompt-openai-1.md](openai/prompt-openai-1.md)): Paste into ChatGPT with the lecture PDF; it does slide-by-slide generation with checkpoints. When it emits the CSV, copy that to the clipboard before continuing.
-- Phase 2 prompt ([openai/prompt-openai-2.md](openai/prompt-openai-2.md)): The script copies this for you after Phase 1. Paste it (same chat) to clean up and compress the cards, then copy the final CSV to the clipboard.
+- Phase 1 prompt ([openai/prompt-openai-1.txt](openai/prompt-openai-1.txt)): Paste into ChatGPT with the lecture PDF; it does slide-by-slide generation with checkpoints. When it emits the CSV, copy that to the clipboard before continuing.
+- Phase 2 prompt ([openai/prompt-openai-2.txt](openai/prompt-openai-2.txt)): The script copies this for you after Phase 1. Paste it (same chat) to clean up and compress the cards, then copy the final CSV to the clipboard.
 - The script saves both the raw and cleaned CSV/MD outputs automatically.
 - If the model stops partway through, send: `Load previous checkpoint and continue` to resume from the last saved progress.
 
