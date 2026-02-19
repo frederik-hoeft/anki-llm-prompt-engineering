@@ -101,8 +101,9 @@ FOR page i from START_PAGE to PAGE_COUNT:
 
   This deterministically produces:
 
-    /mnt/data/slides/page-i.png
+    /mnt/data/slides/page-ii.png
 
+  where ii is the zero-padded page number (e.g., page-01.png, page-02.png, ..., page-10.png, etc.)
   Use that exact file path for visual inspection.
 
   If Poppler fails to render page i OR the output remains unreadable after one DPI retry:
@@ -111,7 +112,7 @@ FOR page i from START_PAGE to PAGE_COUNT:
 
     gs -dSAFER -dBATCH -dNOPAUSE -sDEVICE=pngalpha -r <DPI> \
       -dFirstPage=i -dLastPage=i \
-      -sOutputFile="/mnt/data/slides/page-i.png" "<PDF>"
+      -sOutputFile="/mnt/data/slides/page-ii.png" "<PDF>"
 
   If both renderers fail:
     BLOCK with:
@@ -124,7 +125,7 @@ FOR page i from START_PAGE to PAGE_COUNT:
   3.2 Mandatory Visual Inspection
   --------------------------------------------------------
 
-  - Attempt 1: Use `container.open_image` on /mnt/data/slides/page-i.png.
+  - Attempt 1: Use `container.open_image` on /mnt/data/slides/page-ii.png.
 
   If Attempt 1 fails with an authorization-like error (TRACE contains "401" OR "Unauthorized" OR "create_file_entry"):
     - Attempt 2: Retry `container.open_image` ONCE on the same file.
@@ -138,7 +139,7 @@ FOR page i from START_PAGE to PAGE_COUNT:
           - `/mnt/data/anki_partial.csv`
       - Then BLOCK with:
           REASON=tool_auth_failure
-          PAGE=i
+          PAGE=ii
           RENDERER=<pdftocairo|gs>
           TRACE=<raw output>
 
@@ -148,7 +149,7 @@ FOR page i from START_PAGE to PAGE_COUNT:
         - `/mnt/data/anki_partial.csv`
     - Then BLOCK with:
         REASON=image_open_failure
-        PAGE=i
+        PAGE=ii
         RENDERER=<pdftocairo|gs>
         TRACE=<raw output>
 
@@ -230,11 +231,12 @@ FOR page i from START_PAGE to PAGE_COUNT:
 
   After finishing page i:
 
-  - Append all new cards to /mnt/data/anki_partial.csv
-  - Update /mnt/data/progress.txt to contain exactly:
+  - IMMEDIATELY append all new cards to /mnt/data/anki_partial.csv through `container.exec` (do NOT overwrite; append only).
+  - ONCE cards are safely appended, write the current page number i to /mnt/data/progress.txt (overwrite) to contain exactly:
 
       i
-
+  
+  Only after both steps succeed, consider page i fully processed, and move to page i+1.
   If any failure occurs AFTER at least one checkpoint was written:
       - Output current CSV content
       - Output:
