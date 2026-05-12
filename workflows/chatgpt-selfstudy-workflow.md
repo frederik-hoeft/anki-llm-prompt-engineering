@@ -74,6 +74,7 @@ Within the same ChatGPT project (to retain lecture context), open a new chat wit
       - The LLM corrects itself and provides improved feedback after discussion.
     - Verify the feedback in question with external resources (e.g., textbooks, online references) if needed to resolve disagreements.
     - Send your professor an email if there is a significant uncertainty about some concept or question, and ask for clarification.
+  - Treat the LLM as a peer reviewer or study partner. Unless it can provide clear reasoning or authorative evidence for its feedback, do not treat it as an authority that must be followed. Use it in a "pair programming" style, to discuss and debate the material until you are satisfied with your understanding and reasoning, whether that is based on your original answer or an improved answer after discussion with the LLM.
 - If provided answers exist from the lecture, upload those as well and compare against your own.
 
 ### 7. Continue
