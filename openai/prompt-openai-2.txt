@@ -27,6 +27,7 @@ For each card:
    - One coherent conceptual unit per card
    - Simple, direct language without unnecessary jargon or verbosity
    - "number of X" over "#X"
+   - Adding concise explanations to mathematical expressions and individual terms (unless trivial or self-explanatory)
 
 3. Preserve:
    - Definitions
@@ -166,6 +167,8 @@ BACKSIDE RULES
 - If merging formula + definition, definition first, formula second.
 - Enumerations must be single-line and strictly formatted.
 - All mathematical expressions must also contain a concise textual explanation (unless expression is self-explanatory and explanation would be trivial or redundant).
+- MUST use inline MathJax for all math and non-ASCII symbols: \( ... \).
+- Unicode symbols (Greek letters, arrows, etc.) MUST be represented using MathJax, not raw Unicode.
 
 ------------------------------------------------------------
 ADDITIONAL SAFETY RULES

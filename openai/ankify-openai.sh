@@ -12,15 +12,24 @@ lecture="${1:-}"
 script_dir="$(/usr/bin/realpath "$(/usr/bin/dirname "${BASH_SOURCE[0]}")")"
 
 # copy first part of prompt template to clipboard
-cat "${script_dir}/prompt-openai-1.md" | esed "s/{LECTURE}/${lecture}/" | eclip set
+cat "${script_dir}/prompt-openai-1.txt" | esed "s/{LECTURE}/${lecture}/" | eclip set
+# loop to copy continuation prompt until user types 'ok'
+echo 'Paste clipboard contents into LLM prompt.'
+while true; do
+    read -rp "Press Enter to copy continuation prompt, or type 'ok' and press Enter when done: " user_input
+    if [[ "${user_input}" == 'ok' ]]; then
+        break
+    fi
+    printf 'load the previous checkpoint and continue. Remember to work slide-by-slide and store your progress after EVERY slide.' | eclip set
+done
 # wait for user input before proceeding
-read -rp "Paste clipboard contents into LLM prompt, press Enter after copying LLM output to clipboard..."
+read -rp 'Copy final LLM output to clipboard and press Enter...'
 eclip get | normalize | esed 's/->/\\\(\\to\\\)/' | tee "${script_dir}/${lecture}-raw.csv" \
 | esed 's/^"/#### /' | esed 's/","/\n\n/' | esed 's/"(?=\r?\n)/\n/' > "${script_dir}/${lecture}-raw.md"
 # copy second part of prompt template to clipboard
-cat "${script_dir}/prompt-openai-2.md" | esed "s/{LECTURE}/${lecture}/" | eclip set
+cat "${script_dir}/prompt-openai-2.txt" | esed "s/{LECTURE}/${lecture}/" | eclip set
 # wait for user to copy LLM output
-read -rp "Paste clipboard contents into LLM prompt, press Enter after copying LLM output to clipboard..."
+read -rp 'Paste clipboard contents into LLM prompt, press Enter after copying LLM output to clipboard...'
 # save clipboard content to CSV file
 # run unicode normalization (kick out emojis / weird non-ascii quotes) and arrow substitution (normalized ascii to LaTeX) pipeline
 # convert to Markdown for review (sequential regex passes)

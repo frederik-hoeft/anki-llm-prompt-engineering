@@ -236,7 +236,10 @@ FOR page i from START_PAGE to PAGE_COUNT:
 
       i
   
-  Only after both steps succeed, consider page i fully processed, and move to page i+1.
+  It is CRITICAL that the checkpointing order is STRICTLY followed: FIRST append cards, THEN update progress.
+  Checkpointing MUST occur after EVERY page, even if zero cards were created. 
+  Only move to slide i+1 after successful checkpointing of slide i.
+  
   If any failure occurs AFTER at least one checkpoint was written:
       - Output current CSV content
       - Output:
@@ -287,3 +290,5 @@ If blocked:
    TRACE=<raw_tools_output_causing_block|NA>
 
 No additional commentary.
+
+End of task.
