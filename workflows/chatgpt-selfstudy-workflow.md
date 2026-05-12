@@ -1,4 +1,4 @@
-# Exam Prep Workflow: ChatGPT Plus + Anki
+# A Sample Workflow for AI-Assisted Self-Study
 
 A structured self-study workflow for closed-book exam preparation, combining LLM-generated Anki flashcards with active lecture review and assignment practice.
 
