@@ -61,7 +61,7 @@ Complete related assignments primarily from memory, using the lecture slides onl
 
 ### 6. Review Assignments with ChatGPT
 
-Within the same ChatGPT project (to retain lecture context), open a new chat with **extended thinking** enabled:
+Within the same ChatGPT project (to retain lecture context), open a new chat with **extended thinking** enabled or use the same chat from the corresponding lecture's Anki generation, to reuse the same context window with the lecture slides and cards. Then:
 
 - Upload the assignment sheet(s) into the chat.
 - Discuss your answers and reasoning with the LLM.
@@ -77,6 +77,7 @@ Within the same ChatGPT project (to retain lecture context), open a new chat wit
     - Send your professor an email if there is a significant uncertainty about some concept or question, and ask for clarification.
   - Treat the LLM as a peer reviewer or study partner. Unless it can provide clear reasoning or authorative evidence for its feedback, do not treat it as an authority that must be followed. Use it in a "pair programming" style, to discuss and debate the material until you are satisfied with your understanding and reasoning, whether that is based on your original answer or an improved answer after discussion with the LLM.
 - If provided answers exist from the lecture, upload those as well and compare against your own.
+- As you gain new insights from the assignments and discussions, consider adding or clarifying cards in the Anki deck to reinforce those insights.
 
 ### 7. Continue
 
