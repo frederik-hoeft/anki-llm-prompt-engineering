@@ -35,16 +35,17 @@ Use the latest GPT model with **extended thinking** enabled. The script guides y
 
 The script saves both raw and cleaned outputs as `.csv` and `.md` files.
 
-### 2. Self-Study the Lecture + Review Cards
+### 2. Self-Study the Lecture + Merge Cards
 
-Read through the lecture PDF once with a focus on **understanding the material**, while verifying the generated Anki cards on the side (using the `.md` file or the CSV):
+Read through the lecture PDF once with a focus on **understanding the material**. As you study, use the `.md` or `.csv` files side-by-side with the lecture PDF to perform a (manual) **3-way merge** of the generated Anki cards to produce a final `.csv`:
 
-- Ensure no important details were omitted by the LLM.
-- Optimize card titles and descriptions for personal learning effectiveness.
-- Remove cards that are unnecessary or redundant.
-- Cards should include enough context for you to remember the material + reasoning as to why that answer is correct.
+1. **Raw LLM cards** (Phase 1 output) - the unfiltered, comprehensive card set: whatever the LLM initially considered relevant from the slides.
+2. **Optimized LLM cards** (Phase 2 output) - the compressed/cleaned card set: usually a good base-line, but may have dropped some details or nuance.
+3. **Your manual edits** - additions, corrections, and removals based on your reading: anything that the LLM missed, you had questions about when reading the slides, or that you want to rephrase for better recall.
 
-Create a final `.csv` merging the raw and optimized LLM CSVs and your own edits.
+Merge these three as you read through the lecture, as soon as you fully understand the current slide or section. This way, you can ensure that the final Anki deck is comprehensive and accurate, while also being tailored to your understanding, recall preferences, and that it excludes any details you deem irrelevant or trivial by your own judgment.
+
+For complex concepts, proofs, or processes (e.g., algorithms, handshake protocols, etc.), make sure to include cards that cover the **reasoning and logic** behind the concept, not just the raw steps or facts.
 
 ### 3. Import into Anki
 
