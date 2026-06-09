@@ -47,7 +47,7 @@ Deprioritize or remove standalone cards for:
 * dataset names/counts unless central to the concept
 * benchmark/timeline observations unless they explain an important architectural shift
 * obvious consequences already implied by another card
-* repeated “question answered” cards when the distinction can be merged into a concept contrast
+* repeated "question answered" cards when the distinction can be merged into a concept contrast
 * narrow implementation details unlikely to be examined
 * examples that do not introduce a general rule
 
@@ -224,11 +224,11 @@ For formulas:
 
 * keep the concept meaning before or with the formula
 * include concise variable explanations when needed
-* use inline MathJax for all math and non-ASCII symbols
+* use inline MathJax for all math and non-ASCII symbols: \( ... \)
 * avoid raw Unicode math symbols outside MathJax
 
 Preferred style:
-"Overlap between prediction (B) and ground truth (B'): (\mathrm{IoU}(B,B')=\frac{F(B\cap B')}{F(B\cup B')}), where (F(X)) is area."
+"Overlap between prediction \(B\) and ground truth \(B'\): \(\mathrm{IoU}(B,B')=\frac{F(B\cap B')}{F(B\cup B')}\), where \(F(X)\) is area."
 
 Avoid formula-only cards unless the formula is self-explanatory.
 
@@ -307,11 +307,11 @@ Example 3 — formula + interpretation merge:
 
 Before:
 "Intersection over Union","Overlap measure between ground-truth and predicted bounding boxes."
-"Intersection over Union: formula","(\mathrm{IoU}(B,B')=\frac{F(B\cap B')}{F(B\cup B')})."
-"Intersection over Union: interpretation","Range (0) to (1); higher is better."
+"Intersection over Union: formula","\(\mathrm{IoU}(B,B')=\frac{F(B\cap B')}{F(B\cup B')}\)."
+"Intersection over Union: interpretation","Range \(0\) to \(1\); higher is better."
 
 After:
-"Intersection over Union: definition + formula","Box-overlap measure between prediction (B) and ground truth (B'): (\mathrm{IoU}(B,B')=\frac{F(B\cap B')}{F(B\cup B')}), where (F(X)) is area; (0)=no overlap, (1)=perfect overlap."
+"Intersection over Union: definition + formula","Box-overlap measure between prediction \(B\) and ground truth \(B'\): \(\mathrm{IoU}(B,B')=\frac{F(B\cap B')}{F(B\cup B')}\), where \(F(X)\) is area; \(0\)=no overlap, \(1\)=perfect overlap."
 
 Example 4 — procedure + trap merge:
 
@@ -320,7 +320,7 @@ Before:
 "Fine-tuning: learning-rate trap","Use lower learning rate after unfreezing."
 
 After:
-"Fine-tuning procedure + trap (5)","1. Load pretrained base and replace head. 2. Freeze base. 3. Train new head. 4. Unfreeze selected later base layers. 5. Jointly train with lower learning rate, e.g. (1/10) or (1/100), to avoid destroying pretrained features."
+"Fine-tuning procedure + trap (5)","1. Load pretrained base and replace head. 2. Freeze base. 3. Train new head. 4. Unfreeze selected later base layers. 5. Jointly train with lower learning rate, e.g. \(1/10\) or \(1/100\), to avoid destroying pretrained features."
 
 ---
 
