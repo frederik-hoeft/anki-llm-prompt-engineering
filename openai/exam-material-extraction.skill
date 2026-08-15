@@ -1,0 +1,455 @@
+---
+name: exam-material-extraction
+description: Deterministic, source-grounded, resumable extraction of high-quality exam study material, especially Anki cards, from complete lecture PDFs or slide decks. Use when every page must be inspected, coverage must be provable, and omissions or unsupported additions are unacceptable.
+---
+
+# Exam Material Extraction
+
+Extract exam-focused study material from lecture PDFs with **complete page coverage, visual-first inspection, strict source grounding, deterministic ordering, and resumable checkpoints**.
+
+This skill is optimized for slide decks and Anki-card generation, but the same inspection and coverage workflow applies to other exhaustive study-material extraction tasks.
+
+## Core contract
+
+These requirements are non-negotiable unless the user explicitly overrides them:
+
+1. **Use the supplied lecture material as the source of truth.**
+   - Do not silently add, correct, reconcile, or replace source content with outside knowledge.
+   - Preserve the source's terminology, notation, distinctions, and framing when they matter for recall.
+   - If a slide is ambiguous or incomplete, represent only what it supports or flag the ambiguity. Do not guess.
+
+2. **Visually inspect every physical PDF page.**
+   - Parsed text, OCR, speaker notes, or PDF text extraction may support inspection, but may not replace it.
+   - Diagrams, arrows, spatial groupings, highlighting, equations, tables, and visual contrasts may carry examinable meaning that text extraction loses.
+   - Process physical PDF pages, not printed slide numbers.
+
+3. **Process every page exactly once logically.**
+   - Inspect pages in ascending physical page order.
+   - A page is complete only after its extraction decision and output have been checkpointed.
+   - Resume by skipping pages that already have valid page checkpoints for the same source.
+
+4. **Fail closed.**
+   - If a page cannot be inspected reliably, do not infer its contents from neighboring pages or extracted text alone.
+   - Stop at the first unresolved inspection failure and preserve all completed work.
+
+5. **Checkpoint after every page.**
+   - Zero-card pages are still completed pages and require a checkpoint.
+   - Use idempotent per-page checkpoints rather than append-only progress markers so interruption cannot duplicate cards.
+
+6. **Run a final coverage gate.**
+   - Do not present the extraction as complete unless every page has one valid completed checkpoint and the final output was assembled from those checkpoints.
+
+---
+
+# Tool strategy
+
+Use the strongest available visual PDF path. Tool names below describe the current ChatGPT environment; preserve the behavior if the concrete tools change.
+
+## Preferred inspection backends
+
+### A. PDF already available to `web.run`
+
+Use the dedicated PDF `screenshot` operation to inspect individual pages directly.
+
+- Take a screenshot of each page that is processed.
+- Inspect the page image itself before making the relevance/card decision.
+- Do not rely on the parsed PDF text returned by `open` as the primary inspection method.
+
+This is the preferred path for PDFs that already have a `web.run` PDF reference.
+
+### B. Local or uploaded PDF
+
+Use the canonical PDF rendering workflow:
+
+```bash
+python /home/oai/skills/pdfs/scripts/render_pdf.py <input.pdf> \
+  --out_dir <checkpoint_dir>/renders \
+  --dpi 200
+```
+
+Then visually inspect each rendered page with `container.open_image` in ascending order.
+
+- 200 DPI is the normal target.
+- Re-render unreadable material at a higher DPI when necessary.
+- If the canonical renderer fails, use an alternate renderer supported by the PDF tooling before giving up.
+- Do not create contact sheets or montages as a substitute for page-by-page inspection.
+
+### C. Secondary text assistance
+
+Use `files.search`, `files.read`, PDF text extraction, or OCR only to **support** an already visually inspected page, for example to:
+
+- confirm tiny text,
+- copy a long formula or identifier accurately,
+- recover text from a scan,
+- locate a section in a very large deck.
+
+Do not let extracted text override contradictory visible content without explicitly resolving the discrepancy.
+
+OCR is a last resort, not the default reading path.
+
+---
+
+# Phase 1: Resolve exactly one source PDF
+
+Identify the intended lecture PDF from the user's attachments/files.
+
+- Prefer an explicitly attached or explicitly named file.
+- If more than one plausible source remains and choosing incorrectly would affect the result, stop with `ambiguous_pdf_selection`.
+- Do not combine multiple PDFs unless the user explicitly requests a multi-source extraction.
+
+Compute and record:
+
+- canonical source identifier/path,
+- source file name,
+- SHA-256 hash when local bytes are available,
+- physical page count,
+- requested output language,
+- output schema/options.
+
+The source hash or stable source identifier is part of the resume identity. Never resume old checkpoints against a different PDF merely because the filename matches.
+
+---
+
+# Phase 2: Initialize resumable state
+
+Use a task-specific checkpoint directory, for example:
+
+```text
+/mnt/data/exam-extraction/<source-slug>/
+  manifest.json
+  pages/
+    0001.json
+    0002.json
+    ...
+  renders/
+  final.csv
+```
+
+`manifest.json` should contain at least:
+
+```json
+{
+  "source": "<stable source identifier>",
+  "sha256": "<hash-or-null>",
+  "page_count": 123,
+  "output_language": "English",
+  "schema_version": 1
+}
+```
+
+Each completed page gets its own checkpoint file:
+
+```json
+{
+  "page": 17,
+  "status": "complete",
+  "cards": [
+    {"Title": "...", "Backside": "..."}
+  ]
+}
+```
+
+A zero-card page is valid:
+
+```json
+{
+  "page": 18,
+  "status": "complete",
+  "cards": []
+}
+```
+
+## Why per-page checkpoints
+
+Do **not** use an append-only CSV plus a single `last_processed_page` integer as the authoritative state. A crash after appending cards but before advancing the page number can duplicate those cards on resume.
+
+Instead:
+
+1. process one page,
+2. write its complete page record to a temporary file,
+3. atomically rename it to `pages/NNNN.json`,
+4. only then continue.
+
+The page file itself is the commit marker. Final CSV is rebuilt deterministically from page records in page order.
+
+---
+
+# Phase 3: Sequential page loop
+
+For physical PDF page `i = 1..PAGE_COUNT`:
+
+1. If `pages/NNNN.json` is a valid completed checkpoint for the current source and schema, skip the page during resume.
+2. Obtain a readable image of page `i` using the selected visual backend.
+3. Visually inspect the full page.
+4. Determine whether the page contains examinable material.
+5. Create zero or more cards using the rules below.
+6. Compare against cards/concepts from earlier completed pages to avoid redundant recall targets.
+7. Atomically write the page checkpoint, including an empty card array when appropriate.
+8. Only after the checkpoint succeeds, proceed to page `i+1`.
+
+The loop is sequential for reasoning and checkpoint purposes even if rendering itself was done in a batch.
+
+## Inspection discipline
+
+For each page, explicitly account for:
+
+- title/topic,
+- definitions,
+- enumerations,
+- formulas and notation,
+- diagrams and labeled relationships,
+- protocol/process steps,
+- comparisons and contrasts,
+- emphasized caveats or exceptions,
+- security properties, assumptions, limitations, or failure modes,
+- examples and whether they introduce a general rule,
+- whether the page is purely administrative or organizational.
+
+Do not conclude that a page is irrelevant from its title alone.
+
+---
+
+# Relevance rules
+
+Create **zero cards** for pages that are only:
+
+- agenda or table-of-contents material,
+- organizational/course administration,
+- section dividers with no new substance,
+- literature/reference lists,
+- acknowledgements/meta material,
+- repeated title slides,
+- pure worked examples that add no new examinable rule, distinction, method, or trap.
+
+Create **one or more cards** when a page introduces or materially extends examinable content.
+
+A later page may justify a new card even when the topic already appeared if it adds a genuinely new:
+
+- definition nuance,
+- condition or precondition,
+- contrast,
+- step or state transition,
+- consequence,
+- failure mode,
+- exception,
+- exam-relevant trap,
+- interpretation of notation or a diagram.
+
+Do not create a duplicate merely because the wording differs.
+
+---
+
+# Card design rules
+
+Unless the user specifies another schema, produce CSV columns:
+
+```csv
+"Title","Backside"
+```
+
+All fields must be correctly CSV-escaped and double-quoted.
+
+Default language is English unless the user requests another language or an established deck style requires otherwise.
+
+## Recall-target rule
+
+Every card must have one clear recall target.
+
+Prefer **atomic but complete** cards:
+
+- one coherent fact, distinction, definition, mechanism, or bounded procedure per card,
+- enough context to make the card self-contained,
+- no artificial fragmentation that forces several cards to reconstruct one inseparable concept,
+- no overloaded cards containing several unrelated recall targets.
+
+## Titles
+
+Titles must:
+
+- not be phrased as questions,
+- not reveal the answer,
+- identify the topic and recall focus,
+- preferably use `Topic: specific focus`.
+
+For a fixed enumerable list, encode the expected cardinality:
+
+```text
+Topic: description (N)
+```
+
+Use `(N)` only when `N` is genuinely fixed and knowing the count improves recall.
+
+## Backsides
+
+Backsides must be concise, source-faithful, and sufficient to satisfy the title's recall target.
+
+For a fixed list of `N` elements, prefer a single-line numbered form:
+
+```text
+1. ..., 2. ..., ..., N. ...
+```
+
+For mathematical definitions:
+
+1. give the conceptual/textual explanation first,
+2. then give the formula,
+3. define non-obvious symbols that are required to understand the formula.
+
+Use inline MathJax `\( ... \)` for mathematics and mathematical symbols when appropriate for the target deck.
+
+Do not pad cards with commentary, mnemonic inventions, or outside context that is absent from the source.
+
+## Diagrams and processes
+
+When a diagram conveys relationships or sequence:
+
+- convert the **general relationship/process** into recallable text,
+- preserve directionality and ordering,
+- include required entities/messages/keys/states when the slide makes them material,
+- avoid making the learner memorize incidental layout.
+
+If a diagram cannot be represented faithfully in text without losing examinable structure, create the smallest set of cards that preserves that structure.
+
+## Examples
+
+Skip a worked example when it merely instantiates a rule already captured.
+
+Create a card when the example introduces a new generalizable:
+
+- rule,
+- method,
+- boundary condition,
+- counterexample,
+- exception,
+- diagnostic pattern,
+- exam trap.
+
+Generalize from the example **only as far as the slide itself supports**.
+
+---
+
+# Duplicate and overlap control
+
+Maintain a lightweight concept ledger from prior completed page checkpoints. This can be reconstructed from existing cards on resume and does not need to be a separate user-facing artifact.
+
+Before adding a new card, ask:
+
+1. Does an earlier card already test the same recall target?
+2. Is the new slide merely rephrasing or illustrating it?
+3. Does the new material add a distinct condition, contrast, exception, consequence, or mechanism?
+
+If there is no new recall value, add no new card.
+
+If there is new value, prefer either:
+
+- a focused new card for the new angle, or
+- a deterministic merge during final normalization when the information is inseparable and merging does not erase page-supported distinctions.
+
+Never remove unique source-supported content merely to reduce card count.
+
+---
+
+# Final normalization and coverage gate
+
+After all physical pages have completed checkpoints:
+
+1. Verify manifest page count against the current source.
+2. Verify that the set of completed page numbers is exactly `1..PAGE_COUNT` with no gaps or out-of-range pages.
+3. Verify every page checkpoint parses successfully.
+4. Reconstruct the full card list in ascending page order.
+5. Perform a final duplicate/overlap pass without introducing external knowledge.
+6. Validate CSV escaping and schema.
+7. Write `final.csv` from scratch from the validated page records.
+8. Verify the final CSV can be parsed and has exactly the expected columns.
+
+Do not claim completion if the page coverage set is incomplete.
+
+A useful internal success summary is:
+
+```text
+PAGE_COUNT=<n> PROCESSED=<n> MATCH=true
+```
+
+The user-facing response should follow the user's requested output format. If they requested CSV only, do not add a narrative report.
+
+---
+
+# Blocking and interruption protocol
+
+If reliable inspection becomes impossible, preserve completed checkpoints and stop rather than guessing.
+
+Use a compact machine-readable failure report:
+
+```text
+BLOCKED: cannot read PDF content reliably
+REASON=<short_reason_code>
+PAGE=<physical_page_number|NA>
+INSPECTOR=<web_pdf_screenshot|render_pdf+open_image|NA>
+RESUME_FROM=<first_uncompleted_page|NA>
+TRACE=<relevant raw tool error or concise failure detail>
+CHECKPOINT_DIR=<path|NA>
+```
+
+Recommended reason codes:
+
+- `ambiguous_pdf_selection`
+- `source_unavailable`
+- `page_count_failure`
+- `render_failure`
+- `screenshot_failure`
+- `image_open_failure`
+- `unreadable_page`
+- `checkpoint_write_failure`
+- `source_changed_since_checkpoint`
+- `coverage_mismatch`
+- `final_csv_validation_failure`
+
+If a tool failure is transient, retry only when there is a concrete reason to expect success. Do not loop indefinitely.
+
+On resume:
+
+- verify source identity first,
+- discover completed pages from checkpoint files,
+- continue from the first missing page,
+- never re-emit or duplicate previously committed page output merely because the prior run ended unexpectedly.
+
+---
+
+# Determinism rules
+
+For reproducible extraction:
+
+- keep physical page order,
+- use stable card ordering within a page: top-to-bottom and then left-to-right unless semantic sequence clearly overrides layout,
+- use stable title wording when revisiting the same concept,
+- avoid random sampling or selective page skipping,
+- do not change extraction criteria mid-run,
+- record any user-requested exceptions in the manifest,
+- rebuild final output from page checkpoints rather than mutating a partial final file in place.
+
+Determinism means **repeatable coverage and organization**, not blindly forcing identical prose when a clearer source-faithful phrasing is available.
+
+---
+
+# Quality gate
+
+Before delivering the final study material, verify all of the following:
+
+- [ ] Exactly one source PDF was used, unless multi-source extraction was explicitly requested.
+- [ ] Source identity matches the checkpoint manifest.
+- [ ] Physical page count is known.
+- [ ] Every page was visually inspected.
+- [ ] Every page has exactly one completed page checkpoint.
+- [ ] Administrative pages were intentionally classified, not accidentally skipped.
+- [ ] Examinable diagrams/tables/formulas were interpreted from the rendered page, not text extraction alone.
+- [ ] Cards are source-grounded and do not silently add external knowledge.
+- [ ] Every card has a clear recall target.
+- [ ] Duplicate recall targets were removed or narrowed to genuinely new angles.
+- [ ] Fixed enumerations use correct counts.
+- [ ] Mathematical definitions contain explanation plus formula where appropriate.
+- [ ] Worked examples were generalized only when the source supports the general rule.
+- [ ] Final output was reconstructed from checkpoints in deterministic page order.
+- [ ] Coverage is exactly `1..PAGE_COUNT`.
+- [ ] Final CSV parses successfully.
+
+If any required item fails, fix it before delivering or return a blocking report.
