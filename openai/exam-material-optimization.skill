@@ -1,0 +1,708 @@
+---
+name: exam-material-optimization
+description: Optimize an existing study-card artifact for exam-focused recall by compressing low-yield detail, prioritizing from course evidence, and selectively enriching from authoritative non-slide course material while preserving traceability and correctness.
+---
+
+# Exam Material Optimization
+
+Optimize a supplied study-card artifact for **exam-focused memorization efficiency**.
+
+The **input card set is the refinement baseline**. Treat it as an existing artifact to analyze, preserve, merge, split, condense, and selectively enrich from **supporting course material other than lecture slides**. Do not assume how the card set was produced and do not reproduce, reconstruct, or routinely re-verify an earlier extraction workflow.
+
+Assume the supplied cards are **reasonably correct and representative of the lecture-slide baseline**. They may still be incomplete, redundant, overly detailed, poorly clustered, or otherwise low-yield.
+
+The optimization process is **evidence-driven and artifact-centric**:
+
+```text
+supplied card artifact
++ authoritative non-slide course material
++ exam-priority evidence
+    -> prioritization / enrichment / compression
+    -> preservation + provenance audit
+    -> optimized card artifact
+```
+
+Lecture slides are a **targeted verification source only**. Do not systematically review them to verify existing cards or search them for additional content. Consult them only to resolve a specific conflict, ambiguity, suspicious detail, or missing context required for correctness.
+
+---
+
+# Core contract
+
+These rules are mandatory unless the user explicitly overrides them.
+
+1. **The supplied authoritative course material defines the knowledge boundary.**
+   - Existing cards provide the trusted lecture baseline.
+   - Assignments, exercises, solutions, instructor notes, labs/tutorials, focus documents, and similar supplied course material may legitimately deepen or widen it.
+   - Do not add facts from general model knowledge, arbitrary web research, unsupplied textbooks, or other external sources unless explicitly authorized.
+
+2. **Optimize for exam yield, not wording or minimum card count.**
+   - Remove or absorb low-yield detail and redundancy.
+   - Merge natural recall clusters.
+   - Split overloaded cards.
+   - Preserve central definitions, mechanisms, formulas, distinctions, procedures, decision rules, correctness conditions, edge cases, caveats, and exam traps.
+
+3. **Use course evidence to calibrate priority and expected depth.**
+   - Past/sample exams and explicit focus material are strong priority signals.
+   - Assignments/exercises and solutions are both priority signals and legitimate enrichment sources.
+   - Repeated treatment, conceptual centrality, required problem-solving depth, and dependencies matter more than superficial keyword overlap.
+
+4. **Use evidence-weighted judgment at the compression boundary.**
+   - Do not preserve a detail merely because it could hypothetically appear on an exam.
+   - Preserve it when course evidence, conceptual centrality, required precision, or dependence of another examinable concept gives it realistic independent recall value.
+   - Omit or absorb details whose main justification is completeness, especially isolated trivia, example-specific facts, minor historical context, incidental implementation details, or niche use cases.
+   - When evidence is genuinely ambiguous, preserve the underlying concept while removing unnecessary standalone detail.
+   - Uncertainty alone is neither a reason to keep nor a reason to delete.
+
+5. **Compression must be auditable.**
+   - Every input card receives an explicit disposition.
+   - Every protected content unit remains traceable to an optimized destination.
+   - Added content has explicit authoritative-course provenance.
+   - Dropped content has an explicit low-yield or redundancy rationale.
+
+6. **Optimize language for clear, efficient recall.**
+   - Prefer plain, modern, direct phrasing over needlessly formal, archaic, or syntactically complex prose.
+   - Simplify connecting words and sentence structure when doing so preserves technical meaning, logical direction, and nuance.
+   - Concision does not require sentence fragments: use complete sentences when fragments would sound choppy, ambiguous, or hard to understand.
+   - Preserve established technical terminology and any wording needed to express conditions, causality, distinctions, or scope precisely.
+   - You may use mathematical notation, like \(\implies\), \(\forall\), \(\exists\) to connect cause and effect in natural-language statements when it improves clarity and concision.
+
+---
+
+# Source roles
+
+## 1. Supplied card set: trusted refinement baseline
+
+The supplied card artifact is the object being optimized.
+
+Use it to:
+
+- preserve useful recall targets and established terminology/style,
+- identify redundancy and natural merge/split clusters,
+- identify gaps or missing depth when compared with supporting course material,
+- provide stable provenance for transformed content.
+
+Assume its factual content is reasonably correct. Do **not** systematically re-check each card against lecture slides.
+
+If a card appears internally inconsistent, ambiguous, or conflicts with another supplied course source, perform a targeted verification against the relevant authoritative material. Use lecture slides only when they are the appropriate source for that specific issue.
+
+## 2. Supporting course material: enrichment and depth authority
+
+Normal enrichment sources include:
+
+- pre-existing prioritization or focus documents,
+- assignments,
+- exercises,
+- sample solutions,
+- instructor-provided notes,
+- tutorials/labs,
+- course focus documents,
+- other supplied non-slide material that is clearly part of the course.
+
+Use them to identify concepts, procedures, distinctions, caveats, problem-solving methods, or expected depth that deserve inclusion even when absent from the input deck.
+
+A candidate addition qualifies only when it:
+
+1. is directly supported by supplied course material,
+2. is relevant to the course/exam rather than merely adjacent background knowledge,
+3. forms or strengthens a useful recall target,
+4. survives the same low-yield criteria applied to existing cards.
+
+Do not add content merely because it appears somewhere in supporting material.
+
+## 3. Exam evidence: prioritization authority
+
+Examples:
+
+- pre-existing prioritization or focus documents,
+- past exams,
+- sample/training exams,
+- explicit exam-focus or scope documents,
+- instructor comments about task types or expected precision,
+- repeated assignment/exercise patterns,
+- solution structures that reveal required depth.
+
+Use these to infer:
+
+- likely task types,
+- topic priority,
+- expected precision,
+- recurring mechanisms/formulas/procedures,
+- important distinctions or traps,
+- details unlikely to deserve standalone recall targets.
+
+Past exams and explicit focus material are especially strong priority signals. Assignments/exercises may simultaneously be content authority and priority evidence.
+
+## 4. Lecture slides: targeted verification only
+
+The input deck is assumed to already represent the lecture-slide baseline reasonably well.
+
+Do **not** systematically inspect slides to:
+
+- verify existing cards,
+- search for omitted slide content,
+- enrich the deck from slide material,
+- recreate a slide-extraction pass.
+
+Consult slides only when needed to resolve a specific issue, such as:
+
+- conflicting supplied course sources,
+- a suspicious or ambiguous card,
+- uncertainty about exact notation, formula direction, protocol ordering, terminology, or a boundary condition,
+- missing context required to make a transformation correct.
+
+Slide consultation must be narrowly scoped to the issue being resolved.
+
+## 5. External/general knowledge: prohibited by default
+
+Do not use unsupplied external knowledge to add, correct, broaden, or reinterpret exam content unless the user explicitly authorizes it.
+
+---
+
+# Inputs
+
+Resolve when available:
+
+1. **Primary card set**
+   - usually CSV with `Title` and `Backside`,
+   - may be an attached file or explicit CSV block.
+
+2. **Supporting course material**
+   - assignments/exercises and solutions,
+   - notes/tutorials/labs,
+   - focus documents,
+   - other supplied non-slide course resources.
+
+3. **Exam-priority evidence**
+   - previous/sample exams,
+   - focus/scope documents,
+   - repeated/deep assignment coverage,
+   - instructor guidance.
+
+4. **Optional lecture slides**
+   - use only for targeted verification as defined above.
+
+5. **Optional style constraints**
+   - language,
+   - title conventions,
+   - MathJax conventions,
+   - CSV schema,
+   - course-specific preferences.
+
+If multiple plausible primary card files exist and the wrong choice would materially affect the result, stop with `ambiguous_card_source`.
+
+If explicit exam-priority evidence is absent, infer importance from the supporting course corpus using centrality, repetition, depth of treatment, exercise use, and conceptual dependencies. Do not interpret missing exam evidence as a reason to keep every detail.
+
+---
+
+# Tool strategy
+
+Use the strongest available structured-file tools. Preserve the behavior, not specific tool names.
+
+## Card input
+
+Parse CSV structurally and validate:
+
+- schema/header,
+- quoting,
+- required fields,
+- record count,
+- malformed or duplicate rows.
+
+## Course material
+
+Use structured document search/read tools for broad review. For PDFs, inspect relevant page images when formulas, diagrams, layout, or question structure affect interpretation.
+
+Do not visually inspect every lecture slide: slide review is targeted only.
+
+For archives such as assignment ZIPs, inspect relevant contained files rather than reasoning from filenames alone.
+
+---
+
+# Workflow
+
+## Phase 1: Parse and normalize the card artifact
+
+Load the complete input deck before modifying it.
+
+Assign stable source IDs by input order:
+
+```text
+C0001, C0002, C0003, ...
+```
+
+Retain at least each card's ID, title, backside, and input index. Do not mutate the source representation during this phase.
+
+---
+
+## Phase 2: Build the evidence model
+
+Review the relevant **non-slide supporting course material** and exam-priority evidence.
+
+Do not perform an exhaustive slide review. Consult slides only for targeted verification when an actual ambiguity or conflict arises.
+
+Build two internal views:
+
+### Coverage/enrichment view
+
+Track:
+
+- concepts already represented in the deck,
+- concepts deepened by assignments/exercises,
+- qualifying concepts introduced only in supporting material,
+- conceptual dependencies relevant to refinement.
+
+### Priority view
+
+Track:
+
+- recurring task types,
+- recurring concepts,
+- expected operations such as explain, compare, trace, calculate, repair, evaluate, or write pseudocode,
+- expected formula/protocol/algorithm precision,
+- repeatedly emphasized distinctions,
+- evidence of edge-case or trap questions,
+- evidence that some context/example material is low-yield.
+
+Use qualitative priority labels if useful:
+
+- `critical`: directly evidenced or structurally indispensable,
+- `high`: core mechanism or likely examinable,
+- `medium`: supports a tested concept or may be independently queried,
+- `low`: useful context but weak standalone recall value,
+- `incidental`: example/history/meta detail with little exam value.
+
+Do not invent numeric probabilities.
+
+---
+
+## Phase 3: Build protected-content and enrichment inventories
+
+Decompose input cards into meaningful **content units**, such as:
+
+- definition,
+- formula / variable meaning,
+- mechanism,
+- procedure step,
+- precondition / postcondition,
+- distinction,
+- decision rule,
+- architecture component,
+- correctness/security property,
+- caveat / edge case / exam trap,
+- example-only or historical detail.
+
+A content unit is an audit unit, not necessarily a separate card.
+
+### Protect content when it is
+
+- critical/high priority,
+- a precise definition,
+- an important formula or required symbol interpretation,
+- a central mechanism/workflow,
+- a fixed algorithm/protocol procedure,
+- an important contrast or decision rule,
+- a correctness condition,
+- an examinable edge case/trap,
+- necessary to keep another retained statement accurate.
+
+### Candidate enrichment
+
+For missing or underrepresented material found in supporting course sources, add a candidate only when all are true:
+
+1. it is directly supported by the supplied source,
+2. it deepens/widens a course concept in an exam-relevant way,
+3. it is not merely trivia, a worked example, niche use case, or incidental implementation detail,
+4. it can form or strengthen a coherent recall target,
+5. it improves exam readiness rather than completeness for its own sake.
+
+Record provenance for accepted enrichment.
+
+---
+
+## Phase 4: Cluster and transform
+
+Cluster by **exam concept**, not title similarity.
+
+Natural clusters include:
+
+- definition + motivation,
+- definition + formula + interpretation,
+- concept + conditions,
+- concept + caveat/trap,
+- purpose + short procedure,
+- architecture + component roles,
+- closely related contrasts,
+- protocol state/messages + properties,
+- decision rule + boundary cases.
+
+For each source card/cluster or accepted enrichment unit, choose an explicit operation:
+
+- `keep`: retain essentially as-is,
+- `rewrite`: make denser/clearer,
+- `merge`: combine one natural recall cluster,
+- `split`: separate independent recall targets,
+- `absorb`: remove standalone form because useful content is retained elsewhere,
+- `add`: create a card from qualifying supporting material,
+- `drop`: omit content that fails the exam-yield criteria.
+
+Every source card receives a disposition.
+
+---
+
+# Compression rules
+
+## Remove or absorb when sensible
+
+Typical low-yield standalone material:
+
+- exact dataset sizes or benchmark values,
+- dates/authors/minor historical milestones,
+- source citations,
+- long example/application lists,
+- repeated consequences already implied elsewhere,
+- performance observations without an examinable mechanism,
+- incidental implementation trivia,
+- worked numeric examples after the general rule is captured,
+- obvious consequences with no independent recall value.
+
+These are defaults, not absolute bans. Preserve a detail when course evidence makes it materially examinable.
+
+## Preserve
+
+- precise definitions,
+- central mechanisms,
+- formulas and necessary variable meanings,
+- important distinctions,
+- decision criteria,
+- algorithm/protocol steps,
+- architecture components needed for understanding,
+- correctness/security conditions,
+- examinable edge cases,
+- limitations that affect correctness,
+- common traps.
+
+## Boundary rule
+
+A non-zero chance of examination is **not** enough to preserve a detail.
+
+Ask instead:
+
+- Is it reinforced by exams, focus material, assignments, or repeated course treatment?
+- Is it conceptually central?
+- Is it needed to solve a likely task?
+- Is it needed to keep another retained statement correct?
+- Would a student realistically need to recall it independently?
+
+If not, prefer removing it as a standalone target or absorbing it into a stronger card.
+
+Preserve **semantic completeness of examinable concepts**, not completeness of the source material.
+
+---
+
+# Merge and split rules
+
+## Merge when
+
+- the result remains one coherent recall target,
+- the items are normally tested/recalled together,
+- merging reduces review cost without hiding distinctions.
+
+Do not merge when:
+
+- topics are merely adjacent,
+- multiple independent mechanisms remain,
+- a distinction becomes less visible,
+- the backside becomes too dense,
+- the title can no longer state one precise recall target,
+- low-yield context should simply be removed.
+
+A merge is not successful merely because it reduces card count.
+
+## Split when
+
+- a card contains independent recall targets,
+- unrelated mechanisms are combined,
+- a definition and independent procedure are conflated,
+- one part is central while another is incidental,
+- the existing card is too dense for reliable retrieval.
+
+Do not create micro-cards for obvious consequences, trivial restatements, or low-yield detail.
+
+---
+
+# Card design rules
+
+Unless the established deck style says otherwise:
+
+## Titles
+
+- not questions,
+- do not reveal the answer,
+- identify one precise recall target,
+- prefer `Topic: focus`.
+
+Useful patterns:
+
+```text
+Topic: focus
+Topic: components (N)
+Topic: procedure (N)
+Topic: definition + formula
+Topic A vs. Topic B
+```
+
+Use `(N)` only for genuinely fixed enumerations.
+
+## Backsides
+
+Prefer:
+
+- concise, natural declarative phrasing,
+- short fragments only when they remain immediately clear,
+- semicolon-separated related properties when readable,
+- formula + interpretation,
+- explicit contrast wording,
+- single-line numbered closed lists.
+
+Avoid:
+
+- long explanatory paragraphs,
+- arbitrary agglomerations of sentence fragments,
+- needlessly formal or complex connective prose,
+- repeating the title,
+- motivational filler,
+- source citations,
+- unrelated context,
+- hidden multi-part recall targets.
+
+Prefer the simplest natural wording that preserves the required precision. Do not compress so aggressively that readability, logical direction, preconditions, causality, scope, or boundary conditions become ambiguous.
+
+## Enumerations
+
+Use only for closed structural sets such as:
+
+- protocol/algorithm steps,
+- fixed components,
+- validity conditions,
+- strategy options,
+- decision factors,
+- explicitly fixed advantages/disadvantages.
+
+Format:
+
+```text
+Topic: description (N)
+```
+
+Backside, single line:
+
+```text
+1. ..., 2. ..., ..., N. ...
+```
+
+The title count must match the semantic item count.
+
+## Formulas
+
+Retain:
+
+1. concept meaning,
+2. formula,
+3. non-obvious variable meanings required to use it,
+4. important boundary/interpretation rules when examinable.
+
+Use inline MathJax when consistent with the deck. Avoid formula-only cards unless genuinely self-explanatory.
+
+---
+
+# Audit ledger
+
+Maintain a sidecar mapping source content to optimized output.
+
+A compact JSONL record may use:
+
+```json
+{
+  "source_ids": ["C0012", "C0013"],
+  "course_sources": [],
+  "operation": "merge",
+  "destination_ids": ["O0008"],
+  "preserved_units": ["definition", "procedure"],
+  "dropped_units": ["worked example"],
+  "reason": "natural exam concept cluster; example has no independent recall value"
+}
+```
+
+For added cards, `source_ids` may be empty but `course_sources` must identify the supporting supplied material.
+
+Audit invariants:
+
+- every source card appears in at least one record,
+- every optimized card has source-card and/or authoritative-course provenance,
+- every protected unit has a destination,
+- every accepted enrichment unit has a destination,
+- every dropped unit has a reason,
+- no added fact has provenance only to general model knowledge or an unsupplied source.
+
+The ledger is a verification artifact; keep the study CSV clean unless the user asks for the audit inline.
+
+---
+
+# Preservation and enrichment audit: hard gate
+
+After transformation, independently verify:
+
+## Protected content
+
+For every protected unit:
+
+- locate its destination,
+- verify the meaning remains intact,
+- verify formulas/variables remain usable,
+- verify procedure ordering remains correct,
+- verify distinctions and caveats remain explicit enough to recall,
+- verify compression did not weaken or invert conditions.
+
+## Dropped content
+
+For every meaningful dropped unit, ask:
+
+- Is it genuinely redundant or low-yield?
+- Does realistic exam evidence support standalone recall value?
+- Is it required for correctness or a boundary condition?
+
+Do not restore a detail solely because its examination probability is non-zero.
+
+## Added content
+
+For every addition:
+
+- verify authoritative supplied-course provenance,
+- verify it satisfies the enrichment criteria,
+- generalize appropriately from worked examples,
+- verify no outside knowledge was smuggled in,
+- verify its depth is proportionate to course evidence.
+
+Fail with:
+
+- `protected_content_loss` if protected content has no valid destination,
+- `unsupported_enrichment` if added content lacks valid supplied-course support.
+
+---
+
+# Coherence audit
+
+Repair cards that:
+
+- mix unrelated recall targets,
+- require omitted context,
+- hide important distinctions,
+- have incorrect enumeration counts,
+- combine formulas with unrelated trivia,
+- become cognitively harder without sufficient benefit,
+- are so terse that conditions or meaning become ambiguous.
+
+Compression should reduce **review cost**, not merely character count.
+
+---
+
+# Determinism and large-deck state
+
+For stable results:
+
+- preserve input order as the initial concept order,
+- cluster by semantic relationship,
+- order output by earliest contributing source card unless logical sequence requires otherwise,
+- assign output IDs in final order (`O0001`, `O0002`, ...),
+- use one stable card/style convention,
+- do not vary deletion thresholds mid-run,
+- do not silently omit source cards.
+
+For large decks, use resumable state keyed to the source deck and supporting evidence. Do not resume against changed inputs without revalidation.
+
+---
+
+# Output artifacts
+
+When producing files, create at least:
+
+```text
+optimized.csv
+compression-audit.jsonl
+```
+
+Default CSV schema:
+
+```csv
+"Title","Backside"
+```
+
+All fields must be valid CSV and double-quoted.
+
+If the user requests CSV-only chat output, return only the optimized CSV in one Markdown code block; keep the audit as a separate/internal artifact when possible.
+
+---
+
+# Final quality gate
+
+Before delivery, verify:
+
+- [ ] the complete source deck was parsed,
+- [ ] relevant non-slide supporting course material was reviewed,
+- [ ] available exam-priority evidence was reviewed,
+- [ ] lecture slides were used only for targeted verification, if needed,
+- [ ] every output fact is supported by the input deck and/or supplied authoritative course material,
+- [ ] no output fact came solely from general model knowledge or an unsupplied source,
+- [ ] every source card has an audit disposition,
+- [ ] every optimized card has provenance,
+- [ ] every added card satisfies the enrichment criteria,
+- [ ] every protected content unit has a destination,
+- [ ] every dropped unit has a defensible low-yield/redundancy rationale,
+- [ ] weak standalone details were actually removed or absorbed where appropriate,
+- [ ] merged cards remain coherent and important distinctions remain visible,
+- [ ] no card is overloaded or over-compressed,
+- [ ] prose is concise, natural, and no more complex or fragmentary than needed,
+- [ ] formulas and fixed enumerations remain correct,
+- [ ] the final deck is meaningfully more review-efficient unless the input was already near-optimal,
+- [ ] the final CSV parses successfully.
+
+Do not deliver success if a hard-gate item fails.
+
+---
+
+# Blocking / failure protocol
+
+When reliable optimization cannot be completed, stop rather than guessing:
+
+```text
+BLOCKED: cannot optimize exam material reliably
+REASON=<short_reason_code>
+SOURCE=<source_card_file_or_NA>
+STAGE=<input|course_evidence|clustering|transformation|audit|output>
+TRACE=<concise_failure_detail>
+CHECKPOINT_DIR=<path|NA>
+```
+
+Useful reason codes:
+
+- `ambiguous_card_source`
+- `card_source_unavailable`
+- `invalid_csv`
+- `missing_required_exam_evidence`
+- `exam_evidence_unreadable`
+- `source_changed_since_checkpoint`
+- `protected_content_loss`
+- `unsupported_enrichment`
+- `course_source_conflict`
+- `audit_coverage_mismatch`
+- `output_csv_validation_failure`
+
+Absence of optional exam-priority evidence is not itself a blocking condition.
+
+---
+
+# Guiding principle
+
+> **Produce the smallest practical set of strong recall targets that preserves semantic completeness of realistically examinable concepts, incorporates qualifying depth from authoritative non-slide course material, and reflects priorities evidenced by the course.**
+
+At the margin, protect the **examinable concept**, not every source detail. Prefer absorbing a marginal detail into a stronger card over either keeping it as a weak standalone card or deleting information required for correctness.
