@@ -1,0 +1,440 @@
+---
+name: exam-workspace-bootstrap
+description: Bootstrap a course-material workspace for reliable study and exam-prep agents by inventorying sources, building a high-level retrieval index, establishing source authority, and deriving exam priorities from content evidence and professor-specific exam style.
+---
+
+# Course Study Workspace Bootstrap
+
+## Purpose
+
+Use this skill when a user provides a body of course material and wants future agents to use it for study assistance or exam preparation.
+
+The goal is to create a **retrieval and relevance layer**, not another set of course notes. Future agents should be able to:
+
+- find the right source quickly,
+- know which sources are authoritative,
+- understand what is likely to matter for the exam,
+- distinguish course evidence from supplemental knowledge,
+- avoid guessing from filenames or general knowledge.
+
+## Outputs
+
+Create these artifacts when applicable:
+
+1. **`<course>-workspace-index.md`**
+   - Complete inventory of supplied material, including archive members.
+   - High-level topic-to-source lookup.
+   - Concise source summaries using major areas, keywords, useful ranges, and source caveats.
+
+2. **`<course>-exam-focus-content-and-task-types.md`**
+   - When exam preparation is relevant and enough evidence exists.
+   - Synthesizes:
+     - examinable content/focus areas,
+     - professor-specific exam style,
+     - final study priorities and preparation strategy.
+
+3. **Project-level agent instructions**
+   - Short instructions telling future agents how to use the index and exam-focus reference, how to weight sources, when external research is appropriate, and how workspace material should be cited.
+
+Generated reference documents are routing and synthesis aids, not independent evidence. Substantive claims should ultimately be grounded in the original course material.
+
+## Core principles
+
+- **Inspect before indexing.** Never infer contents from filenames alone.
+- **Keep indexing high level.** The index should route agents to sources, not reproduce course content.
+- **Prefer authoritative course sources.** Current official material controls terminology, notation, assumptions, and scope.
+- **Separate authority from usefulness.** Supplemental sources may aid understanding without overriding official material.
+- **Prefer current term and current instructor.** Down-weight older terms, other instructors, unofficial notes, and generated transcripts.
+- **Do not infer professor style from another professor's exam.**
+- **Preserve task assumptions and course information.** Do not silently modernize or "correct" course material with outside knowledge.
+- **Keep exam-focus synthesis dense.** Focus on what to study, how it is tested, and how to prepare.
+- **Use external research only as a secondary layer.**
+- **State uncertainty and gaps explicitly.**
+
+# Workflow
+
+## 1. Inventory the workspace
+
+Enumerate every supplied root-level file and every archive member.
+
+For each source, determine enough metadata to classify it:
+
+- exact filename or archive-member path,
+- type and approximate size/page count when useful,
+- term/year and instructor when known,
+- official vs. unofficial,
+- current vs. historical,
+- complete vs. partial,
+- original vs. generated/derived,
+- duplicate or superseded status.
+
+Open **every original source at least once** before describing it. Inspect high-value sources more deeply.
+
+For PDFs, visually inspect relevant pages when diagrams, tables, protocol traces, annotations, or layout carry information not represented reliably in extracted text.
+
+For archives, preserve exact member paths in the index.
+
+## 2. Build a high-level source map
+
+The workspace index should answer:
+
+> **Which file should I open first for this topic or task?**
+
+For each source, record only retrieval-oriented information:
+
+- major content areas,
+- a small set of discriminating keywords,
+- broad internal ranges for long documents,
+- what the source is especially useful for,
+- important source-quality or authority caveats.
+
+Good index entry:
+
+> Covers session management, injection, browser-origin attacks, and request-forgery defenses. Best for browser/security-model reasoning and concrete exploit analysis. Keywords: web security, sessions, injection, origin policy, XSS, CSRF.
+
+Too detailed:
+
+> A slide-by-slide summary of every definition, defense, example, and protocol field.
+
+For long documents, split only into meaningful internal regions needed for retrieval.
+
+For exercises:
+- index the broad concept and task shape;
+- note what the solution adds, such as worked reasoning, exact notation, edge cases, or expected answer detail.
+
+For transcripts:
+- map them to broad lecture areas;
+- note term/version and transcription quality;
+- do not create detailed transcript summaries.
+
+## 3. Establish source weighting
+
+Derive a hierarchy from the actual workspace. A common default is:
+
+1. Current official lecture material
+2. Current official exercise tasks and sample solutions
+3. Current official training/sample exam from the target instructor
+4. Current official supplementary material
+5. Lecture recordings/transcripts
+6. Older official material
+7. Unofficial exam notes or memory protocols
+8. User notes
+9. External sources
+
+Adjust this ordering when the course provides stronger guidance.
+
+Record important distinctions, for example:
+
+- Current slides/solutions are authoritative for terminology, notation, mechanisms, and assumptions.
+- Exercises may broaden or deepen lecture material and may therefore expand examinable scope.
+- A same-professor training exam is strong evidence for task style and expected answer detail, but not necessarily complete topic coverage.
+- Transcripts are useful for motivation and spoken emphasis, but generated transcripts require verification of technical details.
+- Exams from another instructor may suggest alternative task ideas, but do not establish the target instructor's preferences.
+- User notes may refine interpretation but should not silently override official sources unless explicitly instructed.
+
+## 4. Extract the exam contract
+
+Inspect syllabus/organizational material and explicit exam guidance.
+
+Extract only study-relevant constraints, such as:
+
+- material in scope,
+- role of exercises and sample solutions,
+- whether exercises may broaden/deepen examinable material,
+- whether quizzes/exercises may be reused or adapted,
+- expected depth of understanding or application,
+- explicitly mentioned task types,
+- relevant timing or answer-length guidance.
+
+Ignore unrelated administrative information unless the user asks for it.
+
+# Exam relevance analysis
+
+Perform three distinct passes. Do not collapse them prematurely.
+
+## 5. Level 1: Content-level relevance
+
+Purpose:
+
+> **What content is demonstrably exam-relevant?**
+
+Analyze all relevant exams or exam-like sources at the content level.
+
+For each subtask:
+- assign one concise topic/focus-area label,
+- use only enough detail to map it to lecture/exercise material,
+- preserve specific mechanisms or caveats only when they materially improve study targeting.
+
+Then:
+- merge closely related areas across exams,
+- note recurrence,
+- weight evidence by instructor, term, official status, and similarity to the target course.
+
+Use high-level labels such as:
+
+- `protocol handshake and peer authentication`
+- `key-compromise recovery`
+- `stateful policy/rule analysis`
+- `defense evaluation under attacker model`
+
+Avoid low-yield implementation trivia unless it is itself clearly central to the exam.
+
+This pass is about **what gets tested**, not **what were the answers** or **how the professor likes to test it**.
+
+## 6. Level 2: Professor-level meta analysis
+
+Purpose:
+
+> **How does the target professor test understanding, and what kind of answer earns points?**
+
+Use only exams, training exams, solutions, and explicit guidance attributable to the **same professor** as the target exam. If there are no past exams from the current instructor, perform this analysis on exercises, sample solutions, and any explicit exam guidance.
+
+Analyze:
+
+### Recall vs. transfer
+- direct recall vs. application to new scenarios,
+- reproduction vs. derivation,
+- whether students must explain why a result follows.
+
+### Question patterns
+- explanation/comparison,
+- protocol or process tracing,
+- attacker-model analysis,
+- compromise/counterfactual reasoning,
+- fault localization and repair,
+- defense/proposal evaluation,
+- design/synthesis,
+- interpretation of code, rules, notation, or diagrams.
+
+### Professor preferences
+- causal reasoning vs. terminology,
+- exact operational reasoning vs. broad description,
+- emphasis on assumptions, evidence, trust, or knowledge,
+- use of plausible-but-incomplete arguments,
+- use of concrete scenarios before generalization,
+- expected answer granularity.
+
+### Content-selection preferences
+- recurring classes of mechanisms,
+- preference for protocol/state reasoning vs. descriptive theory,
+- preference for attacks/defenses, trust relationships, compromise behavior, or design trade-offs,
+- whether named technologies are mainly vehicles for testing general principles.
+- whether there are any areas that the professor personally seems to favor or disfavor.
+
+### Grading and structure
+- granular point allocation,
+- partial credit,
+- whether independent claims earn separate points,
+- whether sample solutions are explanatory rather than representative of required exam length,
+- many short tasks vs. a few long tasks,
+- frequency of multi-part questions.
+
+Classify conclusions as:
+- **explicit evidence**,
+- **strong inference** from repeated patterns,
+- **weak inference** from limited evidence.
+
+Do not promote a one-off question into a professor-wide preference without supporting evidence. Look for patterns across multiple exams or multiple tasks within the same exam. If lecture transcripts are available, analyze relevant sections for explicit guidance, speech patterns, and emphasis to infer likely content and answer preferences. 
+
+## 7. Level 3: Combined prioritization and preparation strategy
+
+Purpose:
+
+> **Given what is tested and how it is tested, what should the student prioritize and how should they practice?**
+
+Only after Levels 1 and 2 are complete, combine them.
+
+For each major area or task pattern, consider:
+
+- content relevance and recurrence,
+- strength and freshness of evidence,
+- same-professor weight,
+- transfer/reasoning demand,
+- breadth of possible question forms,
+- likely cost of weak understanding.
+
+Use this to identify:
+
+- highest-priority content areas,
+- highest-priority reasoning skills,
+- topics requiring exact state/protocol mastery,
+- topics where conceptual comparison is sufficient,
+- areas supported only as alternative possibilities,
+- low-yield details that should not dominate preparation.
+
+Then derive preparation methods, such as:
+
+- memorize compact invariants or protocol skeletons,
+- practice full traces,
+- practice attacker-model reasoning,
+- practice evaluating proposed defenses,
+- practice translating requirements into concrete rules/designs,
+- practice concise cause-and-effect explanations.
+
+Do not assign numerical probabilities unless the evidence genuinely supports them.
+
+# Build the reference documents
+
+## 8. Exam-focus reference
+
+Create `<course>-exam-focus-content-and-task-types.md`.
+
+Recommended structure:
+
+```markdown
+# <Course>: Exam Focus, Content, and Task Types
+
+## Purpose and source weighting
+...
+
+## Exam reasoning profile and expected task types
+...
+
+## Expected answer style
+...
+
+## Grading and preparation implications
+...
+
+## Content focus areas
+...
+```
+
+Source of each section:
+
+- **Content focus areas:** primarily Level 1.
+- **Reasoning profile / answer style:** primarily Level 2.
+- **Preparation implications / prioritization:** primarily Level 3.
+
+Keep it concise and high density:
+
+- merge overlaps,
+- emphasize mechanisms, distinctions, assumptions, failure cases, consequences, and countermeasures,
+- retain named mechanisms only when clearly exam-relevant,
+- remove trivia that does not affect preparation,
+- do not rewrite the lecture table of contents,
+- keep same-professor evidence dominant when inferring exam style,
+- distinguish explicit guidance from inference.
+
+## 9. Workspace index
+
+Create `<course>-workspace-index.md`.
+
+Recommended structure:
+
+```markdown
+# <Course> Workspace Index
+
+## Purpose
+...
+
+## Source priority
+...
+
+## Fast topic lookup
+| Task or topic | Open first | Then consult |
+|---|---|---|
+
+## Coverage gaps and source quality
+...
+
+## Workspace inventory
+...
+```
+
+The index must remain **high-level and retrieval-oriented**.
+
+For each source, prefer:
+- major areas,
+- broad page/slide ranges,
+- `Best for`,
+- keywords,
+- authority/quality caveats.
+
+For archives, inventory every member but keep each summary short.
+
+Record notable gaps or anomalies:
+- missing expected files,
+- partial material,
+- duplicates,
+- generated derivatives,
+- missing solutions,
+- deliberately unanswered tasks,
+- older versions,
+- transcript quality issues.
+
+## 10. Project-level agent instructions
+
+Create a short project-specific prompt after the reference documents exist.
+
+It should tell future agents to:
+
+- use the workspace index as the primary routing guide,
+- consult the exam-focus reference for exam-oriented tasks,
+- prefer authoritative workspace sources over model knowledge,
+- inspect relevant source material before making course-specific claims,
+- preserve course terminology, notation, assumptions, and threat models,
+- use external research only when the workspace is insufficient or the user requests broader/deeper/current context,
+- clearly distinguish external information from course-derived information,
+- state uncertainty instead of guessing.
+
+Also include the **workspace citation convention** in this project prompt. Keep it concise and appropriate to the environment. A common convention is:
+
+- PDF: `(filename.pdf, PDF p. N)` or include a printed slide/page number when useful,
+- text/Markdown: `(filename.md, lines X-Y)`,
+- archive member: `(archive.zip/member/path, lines X-Y)` with timestamp when useful.
+
+Prefer precise locations over whole-file references. If the project or user specifies another citation format, use that instead.
+
+Do not put detailed source routing or exam analysis into the project prompt; those belong in the generated reference documents.
+
+# Retrieval behavior after bootstrap
+
+For future study tasks:
+
+1. Read the workspace index.
+2. For exam-focused work, also read the exam-focus reference.
+3. Open the primary source(s) identified for the topic.
+4. Consult solutions or same-professor exam material when worked reasoning or answer granularity matters.
+5. Use transcripts and older material only according to their documented weight.
+6. Use external research only when needed or requested.
+7. Ground substantive course claims in original sources whenever practical.
+
+# Validation
+
+Before declaring bootstrap complete, verify:
+
+- every root file is accounted for,
+- every archive member is accounted for,
+- summaries are based on inspected content,
+- filenames/member paths and counts are correct,
+- index entries remain high-level,
+- source authority and recency are documented,
+- generated/derived sources are identified,
+- content relevance and professor meta-analysis were kept separate,
+- professor preferences use same-professor evidence only,
+- recall-vs-transfer balance was analyzed when evidence permits,
+- final prioritization combines content and meta evidence,
+- the exam-focus reference is not a broad lecture summary,
+- fast-topic lookup points to material that actually contains the stated area,
+- gaps, duplicates, partial sources, and unavailable solutions are recorded,
+- the generated project prompt includes the intended workspace citation convention,
+- external information has not silently replaced course-specific terminology or assumptions.
+
+If a source cannot be inspected, mark it **unverified/inaccessible** and do not invent a summary.
+
+# Anti-patterns
+
+Do not:
+
+- guess contents from filenames,
+- turn the workspace index into study notes,
+- create slide-by-slide indexing without a retrieval need,
+- treat all sources as equally authoritative,
+- infer one professor's preferences from another professor's exam,
+- confuse recurring content with preferred question style,
+- merge content and meta analysis before the final prioritization pass,
+- treat generated transcripts as authoritative technical text,
+- turn the exam-focus document into a chapter summary,
+- use external knowledge to silently "correct" the course,
+- claim complete coverage before checking archives and file counts.
